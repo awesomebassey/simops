@@ -15,7 +15,7 @@
     "build": "npm run build -w @simops/contracts && npm run build -w @simops/api && npm run build -w @simops/worker && npm run build -w @simops/web"
   },
   "devDependencies": {
-    "concurrently": "^9.1.2"
+    "concurrently": "^10.0.5"
   },
   "engines": {"node": ">=20"}
 }
