@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { CreateSessionDto } from './dto';
 
@@ -46,6 +46,41 @@ export class SessionsService {
     });
 
     return this.withTotalSteps(session);
+  }
+
+  async simulate(id: string) {
+    const session = await this.prisma.session.findUnique({
+      where: { id },
+      select: { id: true, status: true },
+    });
+
+    if (!session) throw new NotFoundException('Session not found');
+    if (session.status !== 'READY') {
+      throw new BadRequestException('Only ready sessions can start the demo simulator');
+    }
+
+    const simulatorUrl = process.env.SIMULATOR_URL ?? 'http://localhost:4100';
+
+    let response: Response;
+    try {
+      response = await fetch(`${simulatorUrl}/run`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ sessionId: id }),
+      });
+    } catch {
+      throw new ServiceUnavailableException('Demo simulator is not available');
+    }
+
+    if (response.status === 409) {
+      throw new BadRequestException('This simulation is already running');
+    }
+
+    if (!response.ok) {
+      throw new ServiceUnavailableException('Demo simulator could not start');
+    }
+
+    return { started: true, sessionId: id };
   }
 
   async events(id: string, take = 20) {

@@ -1,6 +1,6 @@
 'use client';
 
-import { AlertTriangle, ArrowLeft, Check, Circle, Clock3, Radio, ShieldAlert } from 'lucide-react';
+import { AlertTriangle, ArrowLeft, Check, Circle, Clock3, Play, Radio, ShieldAlert } from 'lucide-react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -44,6 +44,8 @@ export default function SessionPage() {
   const [events, setEvents] = useState<TelemetryEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [simulationState, setSimulationState] = useState<'idle' | 'starting' | 'queued'>('idle');
+  const [simulationError, setSimulationError] = useState('');
   const [, setTick] = useState(0);
 
   const loadEvents = useCallback(async () => {
@@ -54,6 +56,7 @@ export default function SessionPage() {
     try {
       const data = await apiRequest<Session>(`/sessions/${id}`);
       setSession(data);
+      if (data.status !== 'READY') setSimulationState('idle');
       setError('');
       await loadEvents();
     } catch {
@@ -71,6 +74,8 @@ export default function SessionPage() {
     socket.on('connect', () => socket.emit('watch.session', session.id));
     socket.on('session.updated', (update: Session) => {
       setSession(update);
+      setSimulationState('idle');
+      setSimulationError('');
       loadEvents();
     });
     return () => { socket.close(); };
@@ -81,6 +86,19 @@ export default function SessionPage() {
     const timer = setInterval(() => setTick(value => value + 1), 1000);
     return () => clearInterval(timer);
   }, [session?.status]);
+
+  const startSimulation = async () => {
+    setSimulationState('starting');
+    setSimulationError('');
+
+    try {
+      await apiRequest<{ started: boolean; sessionId: string }>(`/sessions/${id}/simulate`, { method: 'POST' });
+      setSimulationState('queued');
+    } catch (requestError) {
+      setSimulationState('idle');
+      setSimulationError(requestError instanceof Error ? requestError.message : 'The demo simulator could not start.');
+    }
+  };
 
   const total = session?.totalSteps || session?.scenario.steps?.length || 0;
   const progress = session && total ? Math.min(100, Math.round((session.completedSteps / total) * 100)) : 0;
@@ -104,10 +122,29 @@ export default function SessionPage() {
       </div>
 
       {session.status === 'READY' && (
-        <div className="waiting-banner">
-          <Radio size={22} />
-          <div><strong>Waiting for the simulation client</strong><span>This session is ready. Progress begins when the first telemetry event arrives.</span></div>
-        </div>
+        <>
+          <div className="waiting-banner">
+            <Radio size={22} />
+            <div>
+              <strong>Ready to run the simulation</strong>
+              <span>Start the built-in demo client to stream telemetry into this session in real time.</span>
+              <button
+                className="button button-primary"
+                style={{ marginTop: 14 }}
+                onClick={startSimulation}
+                disabled={simulationState !== 'idle'}
+              >
+                <Play size={17} />
+                {simulationState === 'starting'
+                  ? 'Starting…'
+                  : simulationState === 'queued'
+                    ? 'Simulation starting…'
+                    : 'Run simulation'}
+              </button>
+            </div>
+          </div>
+          {simulationError && <p className="inline-error">{simulationError}</p>}
+        </>
       )}
 
       <div className="session-summary-grid">

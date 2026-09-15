@@ -1,1 +1,15 @@
-{"name":"@simops/simulator","private":true,"scripts":{"start":"tsx src/main.ts"},"dependencies":{"@simops/contracts":"*"},"devDependencies":{"tsx":"^4.19.3","typescript":"^5.8.3"}}
+{
+  "name": "@simops/simulator",
+  "private": true,
+  "scripts": {
+    "start": "tsx src/main.ts once",
+    "serve": "tsx src/main.ts serve"
+  },
+  "dependencies": {
+    "@simops/contracts": "*"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.3"
+  }
+}
