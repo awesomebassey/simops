@@ -1,14 +1,16 @@
 # Design notes
 
-The visual direction is based on the environment the product belongs in: immersive simulation, enterprise training and live operations.
+SimOps is a 2D companion interface for immersive training operations. The product should be understandable before it looks technical.
 
-The interface uses a near-black canvas, high-contrast type, vivid but restrained accents, thin structural borders, large status numerals and obvious system feedback. The layout keeps live progress and data integrity visible without turning the page into a grid of unrelated cards.
+The visual direction takes cues from the world around premium XR products: a dark canvas, large confident typography, generous space, subtle depth, restrained violet/cyan light and clear interaction states. It intentionally avoids terminal styling, tiny uppercase labels, decorative telemetry and dense admin-dashboard chrome.
 
-The goal is for an operator to answer four questions quickly:
+The interface is organized around four user questions:
 
-1. Is the session live and connected?
-2. Where is the participant in the procedure?
-3. Has anything risky or unexpected happened?
-4. Can I trust the event stream and resulting score?
+1. What is SimOps and what can I do here?
+2. Which training scenario should I run?
+3. What is happening in the current session?
+4. What was the final outcome and what evidence supports it?
 
-The display type stays clean and proportional. Status language is short. Decorative effects are limited to subtle depth, signal animation and focused accent color so the interface remains credible in an enterprise training context.
+Every navigation item is a real route. Every populated value comes from the API. Empty states are explicit instead of being replaced with preview data.
+
+The application does not imitate Lucid Reality Labs branding or claim affiliation. The product direction is informed by the same design principles that matter for immersive training software: clarity, natural flows, useful feedback and polished visual quality.
