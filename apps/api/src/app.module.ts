@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { HealthController } from './health.controller';
 import { LiveGateway } from './live.gateway';
 import { PrismaService } from './prisma.service';
 import { QueueService } from './queue.service';
@@ -10,7 +11,7 @@ import { TelemetryController } from './telemetry/telemetry.controller';
 import { TelemetryService } from './telemetry/telemetry.service';
 
 @Module({
-  controllers: [SessionsController, ScenariosController, TelemetryController],
+  controllers: [HealthController, SessionsController, ScenariosController, TelemetryController],
   providers: [PrismaService, QueueService, SessionsService, ScenariosService, TelemetryService, LiveGateway],
 })
 export class AppModule {}

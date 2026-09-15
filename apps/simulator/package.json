@@ -3,12 +3,15 @@
   "private": true,
   "scripts": {
     "start": "tsx src/main.ts once",
-    "serve": "tsx watch src/main.ts serve"
+    "serve": "tsx watch src/main.ts serve",
+    "build": "tsc -p tsconfig.json",
+    "start:prod": "node dist/main.js serve"
   },
   "dependencies": {
     "@simops/contracts": "*"
   },
   "devDependencies": {
+    "@types/node": "^26.5.1",
     "tsx": "^4.23.13",
     "typescript": "^6.0.3"
   }

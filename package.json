@@ -3,7 +3,10 @@
   "private": true,
   "version": "0.1.0",
   "description": "Simulation operations platform for live training sessions, telemetry, scoring and review.",
-  "workspaces": ["apps/*", "packages/*"],
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
     "dev": "concurrently -n api,web,worker,simulator -c auto npm:dev:api npm:dev:web npm:dev:worker npm:dev:simulator",
     "dev:api": "npm run start:dev -w @simops/api",
@@ -12,10 +15,12 @@
     "dev:simulator": "npm run serve -w @simops/simulator",
     "sim": "npm run start -w @simops/simulator",
     "test": "npm run test -w @simops/api && npm run test -w @simops/web",
-    "build": "npm run build -w @simops/contracts && npm run build -w @simops/api && npm run build -w @simops/worker && npm run build -w @simops/web"
+    "build": "npm run build -w @simops/contracts && npm run build -w @simops/api && npm run build -w @simops/worker && npm run build -w @simops/simulator && npm run build -w @simops/web"
   },
   "devDependencies": {
     "concurrently": "^10.0.5"
   },
-  "engines": {"node": ">=20"}
+  "engines": {
+    "node": ">=20"
+  }
 }
