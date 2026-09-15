@@ -1,0 +1,64 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum SessionStatus {
+  READY
+  LIVE
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum EventState {
+  ACCEPTED
+  PROCESSED
+  FAILED
+}
+model Scenario {
+  id          String   @id @default(cuid())
+  name        String
+  description String
+  steps       Json
+  createdAt   DateTime @default(now())
+  sessions    Session[]
+}
+
+model Session {
+  id                 String        @id @default(cuid())
+  participantName    String
+  status             SessionStatus @default(READY)
+  startedAt          DateTime?
+  completedAt        DateTime?
+  completedSteps     Int           @default(0)
+  criticalErrors     Int           @default(0)
+  warnings           Int           @default(0)
+  incorrectDecisions Int           @default(0)
+  score              Int           @default(0)
+  scenarioId         String
+  scenario           Scenario      @relation(fields: [scenarioId], references: [id])
+  events             TelemetryEvent[]
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+}
+
+model TelemetryEvent {
+  id         String     @id @default(cuid())
+  eventId    String     @unique
+  type       String
+  timestamp  DateTime
+  stepKey    String?
+  metadata   Json?
+  state      EventState @default(ACCEPTED)
+  sessionId  String
+  session    Session    @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  createdAt  DateTime   @default(now())
+  processedAt DateTime?
+
+  @@index([sessionId, timestamp])
+}
