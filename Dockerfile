@@ -25,6 +25,10 @@ FROM base AS worker
 RUN npm run build -w @simops/worker
 CMD ["node", "apps/worker/dist/main.js"]
 
+FROM base AS simulator
+EXPOSE 4100
+CMD ["npm", "run", "serve", "-w", "@simops/simulator"]
+
 FROM base AS web
 ARG NEXT_PUBLIC_API_URL=http://localhost:4000
 ARG NEXT_PUBLIC_WS_URL=http://localhost:4000

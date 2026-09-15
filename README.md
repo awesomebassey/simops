@@ -4,7 +4,7 @@ SimOps is an API-first operations platform for immersive training and simulation
 
 The project focuses on one complete vertical slice:
 
-**Choose scenario -> create session -> stream telemetry -> process events -> update the operator view -> score the session -> review the outcome**
+**Choose scenario -> create session -> run simulation -> stream telemetry -> process events -> update the operator view -> score the session -> review the outcome**
 
 ## Product flow
 
@@ -17,13 +17,21 @@ The web application has four concrete surfaces:
 
 There is no fabricated preview state in the application. If the database is empty or a session has not received telemetry, the interface says so explicitly.
 
+## Browser-run demo
+
+The included TypeScript simulator now runs as its own service alongside the API, worker and web application.
+
+A ready session exposes a **Run simulation** button. Clicking it asks the API to start the demo simulator for that session. The simulator then behaves like an external simulation client and posts telemetry back through the normal JSON telemetry endpoint.
+
+This means a reviewer can exercise the complete demo from the browser without opening another terminal.
+
+The simulator control endpoint is internal infrastructure for the proof-of-work demo. Telemetry still travels through the same API contract an external Unity-style client would use.
+
 ## Why I built it
 
 The interesting engineering problem is the contract between an unreliable external simulation client and a backend that needs to remain correct when events repeat or reconnect after an interruption.
 
 Every telemetry event has a stable `eventId`. PostgreSQL enforces uniqueness, ingestion acknowledges duplicates without applying them twice, and a BullMQ worker handles scoring and projection updates outside the request path.
-
-The included TypeScript simulator stands in for an external Unity-style client so the integration contract can be exercised without requiring a Unity runtime.
 
 ## Stack
 
@@ -39,20 +47,25 @@ The included TypeScript simulator stands in for an external Unity-style client s
 ## Architecture
 
 ```text
-Simulation client / TypeScript emulator
-                  |
-                  | JSON telemetry
-                  v
-            NestJS API
-             |      |
-             |      +--> PostgreSQL
-             |
-             +--> Redis / BullMQ --> Worker --> scoring + projections
-                                      |
-                                      +--> Redis pub/sub
-                                               |
-                                               v
-                                      Next.js operator console
+Browser
+   |
+   | run demo
+   v
+NestJS API ----------> Demo simulator service
+   ^                         |
+   |                         | JSON telemetry
+   |                         v
+   +------------------- NestJS telemetry API
+                              |
+                              +--> PostgreSQL
+                              |
+                              +--> Redis / BullMQ --> Worker
+                                                     |
+                                                     +--> scoring + projections
+                                                     +--> Redis pub/sub
+                                                              |
+                                                              v
+                                                     Next.js operator UI
 ```
 
 ## Quick start
@@ -77,16 +90,18 @@ The default Compose configuration maps PostgreSQL to host port `5433` to avoid c
 
 1. Open **Scenarios**.
 2. If the database is empty, create the included **Emergency Equipment Inspection** sample.
-3. Create or open the ready session.
-4. In another terminal, run:
+3. Open the ready session.
+4. Click **Run simulation**.
+5. Watch procedure progress and session activity update in real time.
+6. Open **Reviews** after completion.
+
+The original CLI path is still available for development:
 
 ```bash
 npm run sim
 ```
 
-The simulator reuses the oldest ready Emergency Equipment Inspection session when one exists. It then emits start, procedure, decision, warning and completion events. The session page updates through Socket.IO as the worker processes telemetry.
-
-You can also target a specific session:
+You can target a specific session with:
 
 ```bash
 SIMOPS_SESSION_ID=<session-id> npm run sim
@@ -118,7 +133,7 @@ The application does not claim affiliation with Lucid Reality Labs and does not 
 apps/api            NestJS API and Prisma schema
 apps/web            Next.js operator application
 apps/worker         BullMQ processing and scoring
-apps/simulator      TypeScript simulation-client emulator
+apps/simulator      TypeScript simulation-client emulator and demo service
 packages/contracts  shared domain contracts and scoring helpers
 docs                architecture and decision records
 ```

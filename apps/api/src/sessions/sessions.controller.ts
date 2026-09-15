@@ -21,6 +21,11 @@ export class SessionsController {
     return this.sessions.seedDemo();
   }
 
+  @Post(':id/simulate')
+  simulate(@Param('id') id: string) {
+    return this.sessions.simulate(id);
+  }
+
   @Get(':id/events')
   events(
     @Param('id') id: string,
